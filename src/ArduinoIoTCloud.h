@@ -22,22 +22,11 @@
 #include <ArduinoIoTCloudBearSSL.h>
 #include <ArduinoCloudThing.h>
 #include "ConnectionManager.h"
-#include "types/CloudWrapperBool.h"
-#include "types/CloudWrapperFloat.h"
-#include "types/CloudWrapperInt.h"
-#include "types/CloudWrapperString.h"
-
 
 #include "CloudSerial.h"
 
 #define DEFAULT_BROKER_ADDRESS "mqtts-sa.iot.arduino.cc"
 #define DEFAULT_BROKER_PORT 8883
-typedef enum {
-  READ      = 0x01,
-  WRITE     = 0x02,
-  READWRITE = READ | WRITE
-} permissionType;
-
 // Declaration of the struct for the mqtt connection options
 typedef struct {
   int keepAlive;
@@ -113,49 +102,7 @@ class ArduinoIoTCloudClass {
     inline String getDeviceId() const {
       return _device_id;
     };
-
-#define addProperty( v, ...) addPropertyReal(v, #v, __VA_ARGS__)
-
-    static unsigned long const DEFAULT_MIN_TIME_BETWEEN_UPDATES_MILLIS = 500; /* Data rate throttled to 2 Hz */
-
-    void addPropertyReal(ArduinoCloudProperty& property, String name, permissionType permission_type = READWRITE, long seconds = ON_CHANGE, void(*fn)(void) = NULL, float minDelta = 0.0f, void(*synFn)(ArduinoCloudProperty& property) = CLOUD_WINS) {
-      Permission permission = Permission::ReadWrite;
-      if (permission_type == READ) {
-        permission = Permission::Read;
-      } else if (permission_type == WRITE) {
-        permission = Permission::Write;
-      } else {
-        permission = Permission::ReadWrite;
-      }
-
-      if (seconds == ON_CHANGE) {
-        Thing.addPropertyReal(property, name, permission).publishOnChange(minDelta, DEFAULT_MIN_TIME_BETWEEN_UPDATES_MILLIS).onUpdate(fn).onSync(synFn);
-      } else {
-        Thing.addPropertyReal(property, name, permission).publishEvery(seconds).onUpdate(fn).onSync(synFn);
-      }
-    }
-
-    ArduinoCloudProperty& addPropertyReal(ArduinoCloudProperty & property, String const & name, Permission const permission) {
-      return Thing.addPropertyReal(property, name, permission);
-    }
-
-    void addPropertyReal(bool& property, String name, permissionType permission_type = READWRITE, long seconds = ON_CHANGE, void(*fn)(void) = NULL, float minDelta = 0.0f, void(*synFn)(ArduinoCloudProperty & property) = CLOUD_WINS) {
-      ArduinoCloudProperty *p = new CloudWrapperBool(property);
-      addPropertyReal(*p, name, permission_type, seconds, fn, minDelta, synFn);
-    }
-    void addPropertyReal(float& property, String name, permissionType permission_type = READWRITE, long seconds = ON_CHANGE, void(*fn)(void) = NULL, float minDelta = 0.0f, void(*synFn)(ArduinoCloudProperty & property) = CLOUD_WINS) {
-      ArduinoCloudProperty *p = new CloudWrapperFloat(property);
-      addPropertyReal(*p, name, permission_type, seconds, fn, minDelta, synFn);
-    }
-    void addPropertyReal(int& property, String name, permissionType permission_type = READWRITE, long seconds = ON_CHANGE, void(*fn)(void) = NULL, float minDelta = 0.0, void(*synFn)(ArduinoCloudProperty & property) = CLOUD_WINS) {
-      ArduinoCloudProperty *p = new CloudWrapperInt(property);
-      addPropertyReal(*p, name, permission_type, seconds, fn, minDelta, synFn);
-    }
-    void addPropertyReal(String& property, String name, permissionType permission_type = READWRITE, long seconds = ON_CHANGE, void(*fn)(void) = NULL, float minDelta = 0.0f, void(*synFn)(ArduinoCloudProperty & property) = CLOUD_WINS) {
-      ArduinoCloudProperty *p = new CloudWrapperString(property);
-      addPropertyReal(*p, name, permission_type, seconds, fn, minDelta, synFn);
-    }
-
+    
     void connectionCheck();
     String getBrokerAddress() {
       return _brokerAddress;
@@ -166,6 +113,7 @@ class ArduinoIoTCloudClass {
     void printDebugInfo();
     void addCallback(ArduinoIoTCloudEvent const event, OnCloudEventCallback callback);
 
+    ArduinoCloudThing& getThing() { return Thing; }; 
   protected:
     friend class CloudSerialClass;
     int writeStdout(const byte data[], int length);
